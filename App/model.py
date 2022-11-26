@@ -1,50 +1,176 @@
-﻿"""
- * Copyright 2020, Departamento de sistemas y Computación,
- * Universidad de Los Andes
- *
- *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contribuciones:
- *
- * Dario Correal - Version inicial
- """
-
-
-import config as cf
+﻿import config as cf
+import math
+from haversine import haversine, Unit
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import graph as gr
 from DISClib.DataStructures import mapentry as me
-from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Sorting import mergesort as merge
+from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.Algorithms.Graphs import scc
+from DISClib.Algorithms.Graphs import bfs
 assert cf
 
-"""
-Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
-los mismos.
-"""
+def newAnalyzer() -> dict:
+    """
+    Initialize the dictionary that contains all the information
+    """
+    analyzer: dict = {}
 
-# Construccion de modelos
+    analyzer["connections_graph"] = gr.newGraph("ADJ_LIST", False, size=4649)
+    analyzer["connections_digraph"] = gr.newGraph("ADJ_LIST", True, size=4649)
+    analyzer["stops_info"] = mp.newMap(4649, maptype="PROBING", loadfactor=0.5)
 
-# Funciones para agregar informacion al catalogo
+    return analyzer
 
-# Funciones para creacion de datos
+def addStop(analyzer: dict, stop: dict) -> None:
+    """
+    Add a vertex(stop) into the graphs
+    """
+    graph: graph = analyzer["connections_graph"]
+    digraph: graph = analyzer["connections_digraph"]
 
-# Funciones de consulta
+    station_code: str = stop["Code"]
+    station_stop: str = stop["Bus_Stop"]
+    station_stop: str = station_stop.split("-")[1]
+    station_stop: str = station_stop.strip()
 
-# Funciones utilizadas para comparar elementos dentro de una lista
+    format_station: str = formatStation(station_code, station_stop)
 
-# Funciones de ordenamiento
+    if stop["Transbordo"] == "S":
+        connection_station: str = "T" + "-" + stop["Code"]
+        if gr.containsVertex(graph, connection_station):
+            gr.insertVertex(graph, format_station)
+        else:
+            gr.insertVertex(graph, connection_station)
+            gr.insertVertex(graph, format_station)
+
+        if gr.containsVertex(digraph, connection_station):
+            gr.insertVertex(digraph, format_station)
+        else:
+            gr.insertVertex(digraph, connection_station)
+            gr.insertVertex(digraph, format_station)
+    else:
+       gr.insertVertex(graph, format_station)
+       gr.insertVertex(digraph, format_station)
+
+    addStopInfo(analyzer, stop, format_station)
+
+
+def formatStation(station_code: str, station_stop: str) -> str:
+    """
+    Format the station name, to "Code-BusId"
+    """
+    format_station: str = station_code + "-" + station_stop
+
+    return format_station
+
+def addStopInfo(analyzer: dict, stop: dict, format_station: str) -> None:
+    """
+    Adds the coordiantes of each station into a hash map
+    """
+    stops_map: map = analyzer["stops_info"]
+    mp.put(stops_map, format_station, stop)
+
+def addEdgeGraph(analyzer: dict, edge: dict) -> None:
+    """
+    Add the edge on the graph, between vertex A and vertex B
+    """
+    graph: graph = analyzer["connections_graph"]
+
+    origin_station: str = formatStation(edge["Code"], (edge["Bus_Stop"].split("-")[1].strip()))
+    destiny_station: str = formatStation(edge["Code_Destiny"], (edge["Bus_Stop"].split("-")[1].strip()))
+
+    if gr.containsVertex(graph, origin_station):
+        if gr.containsVertex(graph, destiny_station):
+            vertexA: dict = me.getValue(mp.get(analyzer["stops_info"], origin_station))
+            vertexB: dict = me.getValue(mp.get(analyzer["stops_info"], destiny_station))
+
+            coordinateA: tuple = (float(vertexA["Latitude"]), float(vertexA["Longitude"]))
+            coordinateB: tuple = (float(vertexB["Latitude"]), float(vertexB["Longitude"]))
+
+            distance: float = haversine(coordinateA, coordinateB, unit='km')
+
+            gr.addEdge(graph, origin_station, destiny_station, distance)
+            gr.addEdge(graph, destiny_station, origin_station, distance)
+
+            if vertexA["Transbordo"] == "S":
+                connection_stationA: str = "T" + "-" + vertexA["Code"]
+                gr.addEdge(graph, origin_station, connection_stationA, 0)
+                gr.addEdge(graph, connection_stationA, origin_station, 0)
+            
+            if vertexB["Transbordo"] == "S":
+                connection_stationB: str = "T" + "-" + vertexB["Code"]
+                gr.addEdge(graph, destiny_station, connection_stationB, 0)
+                gr.addEdge(graph, connection_stationB, destiny_station, 0)
+
+def addEdgeDigraph(analyzer: dict, edge: dict) -> None:
+    """
+    Add the edge on the digraph, between vertex A and vertex B
+    """
+    graph: graph = analyzer["connections_digraph"]
+
+    origin_station: str = formatStation(edge["Code"], (edge["Bus_Stop"].split("-")[1].strip()))
+    destiny_station: str = formatStation(edge["Code_Destiny"], (edge["Bus_Stop"].split("-")[1].strip()))
+
+    if gr.containsVertex(graph, origin_station):
+        if gr.containsVertex(graph, destiny_station):
+            vertexA: dict = me.getValue(mp.get(analyzer["stops_info"], origin_station))
+            vertexB: dict = me.getValue(mp.get(analyzer["stops_info"], destiny_station))
+
+            coordinateA: tuple = (float(vertexA["Latitude"]), float(vertexA["Longitude"]))
+            coordinateB: tuple = (float(vertexB["Latitude"]), float(vertexB["Longitude"]))
+
+            distance: float = haversine(coordinateA, coordinateB, unit='km')
+            print(distance)
+
+            gr.addEdge(graph, origin_station, destiny_station, distance)
+
+            if vertexA["Transbordo"] == "S":
+                connection_stationA: str = "T" + "-" + vertexA["Code"]
+                gr.addEdge(graph, origin_station, connection_stationA, 0)
+                gr.addEdge(graph, connection_stationA, origin_station, 0)
+            
+            if vertexB["Transbordo"] == "S":
+                connection_stationB: str = "T" + "-" + vertexB["Code"]
+                gr.addEdge(graph, destiny_station, connection_stationB, 0)
+                gr.addEdge(graph, connection_stationB, destiny_station, 0)
+
+def kosaraju(analyzer: dict) -> None:
+    analyzer["components"]: dict = scc.KosarajuSCC(analyzer["connections_digraph"])
+
+    connected_components: map = analyzer['components']['idscc'] 
+    num_elements: int = scc.connectedComponents(analyzer['components'])
+    vertices: list = mp.keySet(connected_components)
+
+    components: map = mp.newMap(num_elements, maptype="PROBING", loadfactor=0.5)
+
+    for vertix in lt.iterator(vertices):
+        num_component: int = me.getValue(mp.get(components, vertix))
+
+        if mp.contains(components,num_component):
+            lt.addLast(me.getValue(mp.get(components,num_component)), vertix)
+
+        else:
+            vertices_list: list = lt.newList()
+            lt.addLast(vertices_list, vertix)
+            mp.put(components,num_component, vertices_list)
+
+    analyzer["components"]: map = components
+
+def requirement1(analyzer: dict, origin: str, destiny: str) -> list:
+    dijikstra: dijikstra = djk.Dijkstra(analyzer["connections_digraph"], origin)
+    path = djk.pathTo(dijikstra, destiny)
+    print(path)
+
+def requirement2(analyzer: dict, origin: str, destiny: str) -> list:
+    paths = bfs.BreadhtFisrtSearch(analyzer["connections_digraph"], origin)
+
+    if bfs.hasPathTo(paths, destiny):
+        path = bfs.pathTo(paths, destiny)
+        print(path)
+
+def requirement7(analyzer: dict, origin: str) -> list:
+    components = analyzer["components"]["idscc"]
+    vertices = mp.keySet(components)
+    components_map = mp.newMap(10, maptype="PROBING", loadfactor=0.5)

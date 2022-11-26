@@ -1,38 +1,38 @@
-﻿"""
- * Copyright 2020, Departamento de sistemas y Computación,
- * Universidad de Los Andes
- *
- *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
- """
-
-import config as cf
+﻿import config as cf
 import model
 import csv
+import sys
 
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
+csv.field_size_limit(2147483647)
 
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
+def newController() -> dict:
+    """
+    Initialize the dictionary that contains all the information, transfer to the model
+    """
+    analyzer: dict = model.newAnalyzer()
+    return analyzer
 
-# Inicialización del Catálogo de libros
+def loadData(analyzer: dict) -> None:
+    """
+    Load all the information from the archives, transer to the model
+    """
+    stops_file = cf.data_dir + 'Barcelona/bus_stops_bcn-utf8-large.csv'
+    edges_file = cf.data_dir + 'Barcelona/bus_edges_bcn-utf8-large.csv'
+    stops_file = csv.DictReader(open(stops_file, encoding='utf-8'))
+    edges_file = csv.DictReader(open(edges_file, encoding='utf-8'))
 
-# Funciones para la carga de datos
+    for stop in stops_file:
+        model.addStop(analyzer, stop)
 
-# Funciones de ordenamiento
+    for edge in edges_file:
+        model.addEdgeDigraph(analyzer, edge)
 
-# Funciones de consulta sobre el catálogo
+    model.kosaraju(analyzer)
+
+def requirement1(analyzer: dict, origin: str, destiny: str):
+    model.requirement1(analyzer, origin, destiny)
+
+def requirement2(analyzer: dict, origin: str, destiny: str):
+    model.requirement2(analyzer, origin, destiny)
