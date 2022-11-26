@@ -45,6 +45,9 @@ while True:
 
         controller.requirement2(analyzer, origin, destiny)
 
+    elif int(inputs[0]) == 3:
+        controller.requirement3(analyzer)
+
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")
 

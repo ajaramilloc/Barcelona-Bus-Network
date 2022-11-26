@@ -168,6 +168,21 @@ def requirement2(analyzer: dict, origin: str, destiny: str) -> lt:
         path = bfs.pathTo(paths, destiny)
         print(path)
 
+def requirement3(analyzer: dict) -> lt:
+    components: map = analyzer["components"]
+    components_list: lt = mp.keySet(components)
+    format_components: lt = lt.newList("ARRAY_LIST")
+
+    for component in lt.iterator(components_list):
+        component_info: lt = me.getValue(mp.get(components, component))
+        component_dict: dict = {"size": lt.size(component_info), "component": component_info}
+        lt.addLast(format_components, component_dict)
+
+    sorted_list: lt = sortList(format_components, cmp_function_components)
+
+    for i in lt.iterator(sorted_list):
+        print(i["size"])
+
 def requirement7(analyzer: dict, origin: str) -> lt:
     components: map = analyzer["components"]
     components_list: lt = mp.keySet(components)
@@ -178,4 +193,20 @@ def requirement7(analyzer: dict, origin: str) -> lt:
         if lt.size(component_info) > 1:
             if lt.isPresent(component_info, origin):
                 print(component_info)
+
+def cmp_function_components(element1: dict, element2: dict) -> None:
+    """
+    Compare function for the connected components
+    """
+    if element1["size"] > element2["size"]:
+        return True
+    else:
+        return False
+
+
+def sortList(list: lt, cmp_function: cmp_function_components) -> None:
+    """
+    Sort the list based con the cmp_function
+    """
+    return merge.sort(list, cmp_function)
     

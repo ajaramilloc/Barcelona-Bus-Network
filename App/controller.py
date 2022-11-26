@@ -37,5 +37,8 @@ def requirement1(analyzer: dict, origin: str, destiny: str):
 def requirement2(analyzer: dict, origin: str, destiny: str):
     model.requirement2(analyzer, origin, destiny)
 
+def requirement3(analyzer: dict):
+    model.requirement3(analyzer)
+
 def requirement7(analyzer: dict, origin: str):
     model.requirement7(analyzer, origin)
