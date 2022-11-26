@@ -1,5 +1,4 @@
 ﻿import config as cf
-import math
 from haversine import haversine, Unit
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
@@ -122,7 +121,6 @@ def addEdgeDigraph(analyzer: dict, edge: dict) -> None:
             coordinateB: tuple = (float(vertexB["Latitude"]), float(vertexB["Longitude"]))
 
             distance: float = haversine(coordinateA, coordinateB, unit='km')
-            print(distance)
 
             gr.addEdge(graph, origin_station, destiny_station, distance)
 
@@ -141,36 +139,43 @@ def kosaraju(analyzer: dict) -> None:
 
     connected_components: map = analyzer['components']['idscc'] 
     num_elements: int = scc.connectedComponents(analyzer['components'])
-    vertices: list = mp.keySet(connected_components)
+    vertices: lt = mp.keySet(connected_components)
 
     components: map = mp.newMap(num_elements, maptype="PROBING", loadfactor=0.5)
 
     for vertix in lt.iterator(vertices):
-        num_component: int = me.getValue(mp.get(components, vertix))
+        num_component: int = me.getValue(mp.get(connected_components, vertix))
 
         if mp.contains(components,num_component):
             lt.addLast(me.getValue(mp.get(components,num_component)), vertix)
 
         else:
-            vertices_list: list = lt.newList()
+            vertices_list: lt = lt.newList()
             lt.addLast(vertices_list, vertix)
             mp.put(components,num_component, vertices_list)
 
     analyzer["components"]: map = components
 
-def requirement1(analyzer: dict, origin: str, destiny: str) -> list:
+def requirement1(analyzer: dict, origin: str, destiny: str) -> lt:
     dijikstra: dijikstra = djk.Dijkstra(analyzer["connections_digraph"], origin)
     path = djk.pathTo(dijikstra, destiny)
     print(path)
 
-def requirement2(analyzer: dict, origin: str, destiny: str) -> list:
+def requirement2(analyzer: dict, origin: str, destiny: str) -> lt:
     paths = bfs.BreadhtFisrtSearch(analyzer["connections_digraph"], origin)
 
     if bfs.hasPathTo(paths, destiny):
         path = bfs.pathTo(paths, destiny)
         print(path)
 
-def requirement7(analyzer: dict, origin: str) -> list:
-    components = analyzer["components"]["idscc"]
-    vertices = mp.keySet(components)
-    components_map = mp.newMap(10, maptype="PROBING", loadfactor=0.5)
+def requirement7(analyzer: dict, origin: str) -> lt:
+    components: map = analyzer["components"]
+    components_list: lt = mp.keySet(components)
+
+    for component in lt.iterator(components_list):
+        component_info: lt = me.getValue(mp.get(components, component))
+
+        if lt.size(component_info) > 1:
+            if lt.isPresent(component_info, origin):
+                print(component_info)
+    

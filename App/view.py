@@ -45,6 +45,11 @@ while True:
 
         controller.requirement2(analyzer, origin, destiny)
 
+    elif int(inputs[0]) == 7:
+        origin = input("Enter the origin station: ")
+
+        controller.requirement7(analyzer, origin)
+
     else:
         sys.exit(0)
 sys.exit(0)
