@@ -20,7 +20,6 @@ def newAnalyzer() -> dict:
     """
     analyzer: dict = {}
 
-    analyzer["connections_graph"] = gr.newGraph("ADJ_LIST", False, size=4649)
     analyzer["connections_digraph"] = gr.newGraph("ADJ_LIST", True, size=4649)
     analyzer["stops_info"] = mp.newMap(4649, maptype="PROBING", loadfactor=0.5)
     analyzer["neighborhoods"] = mp.newMap(100, maptype="PROBING", loadfactor=0.5)
@@ -35,7 +34,6 @@ def addStop(analyzer: dict, stop: dict) -> None:
     """
     Add a vertex(stop) into the graphs
     """
-    graph: gr = analyzer["connections_graph"]
     digraph: gr = analyzer["connections_digraph"]
 
     station_code: str = stop["Code"]
@@ -47,11 +45,6 @@ def addStop(analyzer: dict, stop: dict) -> None:
 
     if stop["Transbordo"] == "S":
         connection_station: str = "T" + "-" + stop["Code"]
-        if gr.containsVertex(graph, connection_station):
-            gr.insertVertex(graph, format_station)
-        else:
-            gr.insertVertex(graph, connection_station)
-            gr.insertVertex(graph, format_station)
 
         if gr.containsVertex(digraph, connection_station):
             gr.insertVertex(digraph, format_station)
@@ -59,7 +52,6 @@ def addStop(analyzer: dict, stop: dict) -> None:
             gr.insertVertex(digraph, connection_station)
             gr.insertVertex(digraph, format_station)
     else:
-       gr.insertVertex(graph, format_station)
        gr.insertVertex(digraph, format_station)
 
     addStopInfo(analyzer, stop, format_station)
@@ -80,38 +72,6 @@ def addStopInfo(analyzer: dict, stop: dict, format_station: str) -> None:
     """
     stops_map: map = analyzer["stops_info"]
     mp.put(stops_map, format_station, stop)
-
-def addEdgeGraph(analyzer: dict, edge: dict) -> None:
-    """
-    Add the edge on the graph, between vertex A and vertex B
-    """
-    graph: gr = analyzer["connections_graph"]
-
-    origin_station: str = formatStation(edge["Code"], (edge["Bus_Stop"].split("-")[1].strip()))
-    destiny_station: str = formatStation(edge["Code_Destiny"], (edge["Bus_Stop"].split("-")[1].strip()))
-
-    if gr.containsVertex(graph, origin_station):
-        if gr.containsVertex(graph, destiny_station):
-            vertexA: dict = me.getValue(mp.get(analyzer["stops_info"], origin_station))
-            vertexB: dict = me.getValue(mp.get(analyzer["stops_info"], destiny_station))
-
-            coordinateA: tuple = (float(vertexA["Latitude"]), float(vertexA["Longitude"]))
-            coordinateB: tuple = (float(vertexB["Latitude"]), float(vertexB["Longitude"]))
-
-            distance: float = haversine(coordinateA, coordinateB, unit='km')
-
-            gr.addEdge(graph, origin_station, destiny_station, distance)
-            gr.addEdge(graph, destiny_station, origin_station, distance)
-
-            if vertexA["Transbordo"] == "S":
-                connection_stationA: str = "T" + "-" + vertexA["Code"]
-                gr.addEdge(graph, origin_station, connection_stationA, 0)
-                gr.addEdge(graph, connection_stationA, origin_station, 0)
-            
-            if vertexB["Transbordo"] == "S":
-                connection_stationB: str = "T" + "-" + vertexB["Code"]
-                gr.addEdge(graph, destiny_station, connection_stationB, 0)
-                gr.addEdge(graph, connection_stationB, destiny_station, 0)
 
 def addEdgeDigraph(analyzer: dict, edge: dict) -> None:
     """
