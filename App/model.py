@@ -63,7 +63,7 @@ def addStop(analyzer: dict, stop: dict) -> None:
        gr.insertVertex(digraph, format_station)
 
     addStopInfo(analyzer, stop, format_station)
-    addNeighborhood(analyzer, stop)
+    addNeighborhood(analyzer, stop, format_station)
 
 
 def formatStation(station_code: str, station_stop: str) -> str:
@@ -169,7 +169,7 @@ def kosaraju(analyzer: dict) -> None:
 
     analyzer["components"]: map = components
 
-def addNeighborhood(analyzer: dict, stop: dict) -> None:
+def addNeighborhood(analyzer: dict, stop: dict, format_station: str) -> None:
     """
     Adds the stations in the map, key-> neighborhood - value-> stop
     """
@@ -178,10 +178,10 @@ def addNeighborhood(analyzer: dict, stop: dict) -> None:
 
     if mp.contains(neighborhoods, stop_neighborhood):
         stops: lt = me.getValue(mp.get(neighborhoods, stop_neighborhood))
-        lt.addLast(stops, stop)
+        lt.addLast(stops, format_station)
     else:
         stops: lt = lt.newList("ARRAY_LIST")
-        lt.addLast(stops, stop)
+        lt.addLast(stops, format_station)
         mp.put(neighborhoods, stop_neighborhood, stops)
 
 """
@@ -217,6 +217,8 @@ def requirement3(analyzer: dict) -> lt:
 
 def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     graph: gr = analyzer["connections_digraph"]
+    neighborhood_stops = me.getValue(mp.get(analyzer["neighborhoods"], neighborhood))
+    print(neighborhood_stops)
 
 def requirement7(analyzer: dict, origin: str) -> lt:
     components: map = analyzer["components"]

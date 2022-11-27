@@ -48,6 +48,12 @@ while True:
     elif int(inputs[0]) == 3:
         controller.requirement3(analyzer)
 
+    elif int(inputs[0]) == 6:
+        origin = input("Enter the origin station: ")
+        neighborhood = input("Enter the neighborhood: ")
+
+        controller.requirement6(analyzer, origin, neighborhood)
+
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")
 
