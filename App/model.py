@@ -10,6 +10,10 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import bfs
 assert cf
 
+"""
+NEW ANALYZER
+"""
+
 def newAnalyzer() -> dict:
     """
     Initialize the dictionary that contains all the information
@@ -19,15 +23,20 @@ def newAnalyzer() -> dict:
     analyzer["connections_graph"] = gr.newGraph("ADJ_LIST", False, size=4649)
     analyzer["connections_digraph"] = gr.newGraph("ADJ_LIST", True, size=4649)
     analyzer["stops_info"] = mp.newMap(4649, maptype="PROBING", loadfactor=0.5)
+    analyzer["neighborhoods"] = mp.newMap(100, maptype="PROBING", loadfactor=0.5)
 
     return analyzer
+
+"""
+LOADING FUNCTIONS
+"""
 
 def addStop(analyzer: dict, stop: dict) -> None:
     """
     Add a vertex(stop) into the graphs
     """
-    graph: graph = analyzer["connections_graph"]
-    digraph: graph = analyzer["connections_digraph"]
+    graph: gr = analyzer["connections_graph"]
+    digraph: gr = analyzer["connections_digraph"]
 
     station_code: str = stop["Code"]
     station_stop: str = stop["Bus_Stop"]
@@ -54,6 +63,7 @@ def addStop(analyzer: dict, stop: dict) -> None:
        gr.insertVertex(digraph, format_station)
 
     addStopInfo(analyzer, stop, format_station)
+    addNeighborhood(analyzer, stop)
 
 
 def formatStation(station_code: str, station_stop: str) -> str:
@@ -75,7 +85,7 @@ def addEdgeGraph(analyzer: dict, edge: dict) -> None:
     """
     Add the edge on the graph, between vertex A and vertex B
     """
-    graph: graph = analyzer["connections_graph"]
+    graph: gr = analyzer["connections_graph"]
 
     origin_station: str = formatStation(edge["Code"], (edge["Bus_Stop"].split("-")[1].strip()))
     destiny_station: str = formatStation(edge["Code_Destiny"], (edge["Bus_Stop"].split("-")[1].strip()))
@@ -107,7 +117,7 @@ def addEdgeDigraph(analyzer: dict, edge: dict) -> None:
     """
     Add the edge on the digraph, between vertex A and vertex B
     """
-    graph: graph = analyzer["connections_digraph"]
+    graph: gr = analyzer["connections_digraph"]
 
     origin_station: str = formatStation(edge["Code"], (edge["Bus_Stop"].split("-")[1].strip()))
     destiny_station: str = formatStation(edge["Code_Destiny"], (edge["Bus_Stop"].split("-")[1].strip()))
@@ -135,6 +145,9 @@ def addEdgeDigraph(analyzer: dict, edge: dict) -> None:
                 gr.addEdge(graph, connection_stationB, destiny_station, 0)
 
 def kosaraju(analyzer: dict) -> None:
+    """
+    Find the connected components of the digraph
+    """
     analyzer["components"]: dict = scc.KosarajuSCC(analyzer["connections_digraph"])
 
     connected_components: map = analyzer['components']['idscc'] 
@@ -155,6 +168,25 @@ def kosaraju(analyzer: dict) -> None:
             mp.put(components,num_component, vertices_list)
 
     analyzer["components"]: map = components
+
+def addNeighborhood(analyzer: dict, stop: dict) -> None:
+    """
+    Adds the stations in the map, key-> neighborhood - value-> stop
+    """
+    neighborhoods: map = analyzer["neighborhoods"]
+    stop_neighborhood = stop["Neighborhood_Name"]
+
+    if mp.contains(neighborhoods, stop_neighborhood):
+        stops: lt = me.getValue(mp.get(neighborhoods, stop_neighborhood))
+        lt.addLast(stops, stop)
+    else:
+        stops: lt = lt.newList("ARRAY_LIST")
+        lt.addLast(stops, stop)
+        mp.put(neighborhoods, stop_neighborhood, stops)
+
+"""
+REQUIREMENTS
+"""
 
 def requirement1(analyzer: dict, origin: str, destiny: str) -> lt:
     dijikstra: dijikstra = djk.Dijkstra(analyzer["connections_digraph"], origin)
@@ -183,6 +215,9 @@ def requirement3(analyzer: dict) -> lt:
     for i in lt.iterator(sorted_list):
         print(i["size"])
 
+def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
+    graph: gr = analyzer["connections_digraph"]
+
 def requirement7(analyzer: dict, origin: str) -> lt:
     components: map = analyzer["components"]
     components_list: lt = mp.keySet(components)
@@ -194,6 +229,10 @@ def requirement7(analyzer: dict, origin: str) -> lt:
             if lt.isPresent(component_info, origin):
                 print(component_info)
 
+"""
+SORTINGS
+"""
+
 def cmp_function_components(element1: dict, element2: dict) -> None:
     """
     Compare function for the connected components
@@ -204,7 +243,7 @@ def cmp_function_components(element1: dict, element2: dict) -> None:
         return False
 
 
-def sortList(list: lt, cmp_function: cmp_function_components) -> None:
+def sortList(list: lt, cmp_function: bool) -> None:
     """
     Sort the list based con the cmp_function
     """
