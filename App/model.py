@@ -218,7 +218,18 @@ def requirement3(analyzer: dict) -> lt:
 def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     graph: gr = analyzer["connections_digraph"]
     neighborhood_stops = me.getValue(mp.get(analyzer["neighborhoods"], neighborhood))
-    print(neighborhood_stops)
+    dijikstra: djk = djk.Dijkstra(graph, origin)
+    stops = lt.newList("ARRAY_LIST")
+
+    for stop in lt.iterator(neighborhood_stops):
+        distance: float = djk.distTo(dijikstra, stop)
+        stop_info: dict = {"size": distance, "component": stop}
+        lt.addLast(stops, stop_info)
+
+    sorted_list: lt = sortList(stops, cmp_function_components)
+    
+    path = djk.pathTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
+    print(path)
 
 def requirement7(analyzer: dict, origin: str) -> lt:
     components: map = analyzer["components"]
