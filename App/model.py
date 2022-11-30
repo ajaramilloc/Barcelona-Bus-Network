@@ -8,6 +8,7 @@ from DISClib.Algorithms.Sorting import mergesort as merge
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import bfs
+from DISClib.Algorithms.Graphs import cycles
 assert cf
 
 """
@@ -232,15 +233,9 @@ def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     print(path)
 
 def requirement7(analyzer: dict, origin: str) -> lt:
-    components: map = analyzer["components"]
-    components_list: lt = mp.keySet(components)
-
-    for component in lt.iterator(components_list):
-        component_info: lt = me.getValue(mp.get(components, component))
-
-        if lt.size(component_info) > 1:
-            if lt.isPresent(component_info, origin):
-                print(component_info)
+    graph_cycles = cycles.DirectedCycle(analyzer["connections_digraph"])
+    cycles_list = cycles.dfs(analyzer["connections_digraph"], graph_cycles, origin)["cycle"]
+    print(cycles_list)
 
 """
 SORTINGS
