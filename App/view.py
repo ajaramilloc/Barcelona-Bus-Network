@@ -19,11 +19,11 @@ def newController() -> dict:
     control: dict = controller.newController()
     return control
 
-def loadData() -> None:
+def loadData() -> tuple:
     """
     Load all the information from the archives, transer to the controller
     """
-    controller.loadData(analyzer)
+    return controller.loadData(analyzer)
 
 while True:
     printMenu()
@@ -31,7 +31,14 @@ while True:
     if int(inputs[0]) == 0:
         analyzer = newController()
         print("Loading the information from the archives ....")
-        loadData()
+        share_stops, exclusive_stops = loadData()
+        print(share_stops)
+        print(exclusive_stops)
+        print(lt.size(gr.vertices(analyzer["connections_digraph"])))
+        print(lt.size(gr.edges(analyzer["connections_digraph"])))
+        print("\n")
+        print(lt.size(gr.vertices(analyzer["connections_graph"])))
+        print(lt.size(gr.edges(analyzer["connections_graph"])))
 
     elif int(inputs[0]) == 1:
         origin = input("Enter the origin station: ")
@@ -53,6 +60,11 @@ while True:
         neighborhood = input("Enter the neighborhood: ")
 
         controller.requirement6(analyzer, origin, neighborhood)
+
+    elif int(inputs[0]) == 5:
+        origin = input("Enter the origin station: ")
+
+        controller.requirement5(analyzer, origin)
 
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")

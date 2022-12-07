@@ -14,34 +14,47 @@ def newController() -> dict:
     analyzer: dict = model.newAnalyzer()
     return analyzer
 
-def loadData(analyzer: dict) -> None:
+def loadData(analyzer: dict) -> tuple:
     """
     Load all the information from the archives, transer to the model
     """
-    stops_file = cf.data_dir + 'Barcelona/bus_stops_bcn-utf8-large.csv'
-    edges_file = cf.data_dir + 'Barcelona/bus_edges_bcn-utf8-large.csv'
-    stops_file = csv.DictReader(open(stops_file, encoding='utf-8'))
-    edges_file = csv.DictReader(open(edges_file, encoding='utf-8'))
+    stops_file = cf.data_dir + 'Barcelona/bus_stops_bcn-utf8-small.csv'
+    edges_file = cf.data_dir + 'Barcelona/bus_edges_bcn-utf8-small.csv'
+    stop_file = csv.DictReader(open(stops_file, encoding='utf-8'))
+    edge_file = csv.DictReader(open(edges_file, encoding='utf-8'))
 
-    for stop in stops_file:
+    exclusive_stops = 0
+    share_stops = 0
+
+    for stop in stop_file:
+        if stop["Transbordo"] == "S":
+            share_stops += 1
+        else:
+            exclusive_stops += 1
+
         model.addStop(analyzer, stop)
 
-    for edge in edges_file:
-        model.addEdgeDigraph(analyzer, edge)
+    for edge in edge_file:
+        model.addEdge(analyzer, edge)
 
     model.kosaraju(analyzer)
 
+    return share_stops, exclusive_stops
+
 def requirement1(analyzer: dict, origin: str, destiny: str):
-    model.requirement1(analyzer, origin, destiny)
+    return model.requirement1(analyzer, origin, destiny)
 
 def requirement2(analyzer: dict, origin: str, destiny: str):
-    model.requirement2(analyzer, origin, destiny)
+    return model.requirement2(analyzer, origin, destiny)
 
 def requirement3(analyzer: dict):
-    model.requirement3(analyzer)
+    return model.requirement3(analyzer)
+
+def requirement5(analyzer, origin):
+    return model.requirement5(analyzer, origin)
 
 def requirement6(analyzer: dict, origin: str, neighborhood: str):
-    model.requirement6(analyzer, origin, neighborhood)
+    return model.requirement6(analyzer, origin, neighborhood)
 
 def requirement7(analyzer: dict, origin: str):
-    model.requirement7(analyzer, origin)
+    return model.requirement7(analyzer, origin)
