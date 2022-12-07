@@ -312,22 +312,6 @@ def requirement3(analyzer: dict) -> lt:
 
     return top_5, lt.size(sorted_list)
 
-def requirement5(analyzer, origin):
-    graph = analyzer["connections_graph"]
-    mst = prim.PrimMST(graph, origin)
-    prim.weightMST(graph, mst)
-    
-
-    x = prim.edgesMST(analyzer["connections_graph"], mst)
-
-    
-    
-    i = 1
-
-    while i <=5:
-        print(lt.getElement(mst["mst"], i))
-        i += 1
-
 def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     graph: gr = analyzer["connections_digraph"]
     neighborhood_stops = me.getValue(mp.get(analyzer["neighborhoods"], neighborhood))
@@ -367,7 +351,13 @@ def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
 def requirement7(analyzer: dict, origin: str) -> lt:
     graph_cycles = cycles.DirectedCycle(analyzer["connections_digraph"])
     cycles_list = cycles.dfs(analyzer["connections_digraph"], graph_cycles, origin)["cycle"]
-    print(cycles_list)
+    path_list = lt.newList("ARRAY_LIST")
+
+    while not stack.isEmpty(cycles_list):
+            transfer = stack.pop(cycles_list)
+            lt.addLast(path_list, transfer)
+
+    return path_list
 
 """
 SORTINGS

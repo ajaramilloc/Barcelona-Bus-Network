@@ -50,6 +50,7 @@ while True:
         print("===================================\n")
 
         print("===================================")
+        print("DIGRAPH:")
         print("# Vertices: " + str(lt.size(gr.vertices(digraph))))
         print("# Edges: " + str(lt.size(gr.edges(digraph))))
         print("===================================\n")
@@ -63,6 +64,7 @@ while True:
         print("\n")
         
         print("\n===================================")
+        print("GRAPH:")
         print("# Vertices: " + str(lt.size(gr.vertices(graph))))
         print("# Edges: " + str(graph["edges"]))
         print("===================================\n")
@@ -99,6 +101,8 @@ while True:
             for i in lt.iterator(path[0]):
                 print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
 
+        print("\n")
+
     elif int(inputs[0]) == 2:
         origin = input("Enter the origin station: ")
         destiny = input("Enter the destiny station: ")
@@ -123,6 +127,8 @@ while True:
 
             for i in lt.iterator(path[0]):
                 print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
+
+        print("\n")
 
     elif int(inputs[0]) == 3:
         components = controller.requirement3(analyzer)
@@ -152,6 +158,8 @@ while True:
 
             print("===================================\n")
 
+        print("\n")
+
     elif int(inputs[0]) == 6:
         origin = input("Enter the origin station: ")
         neighborhood = input("Enter the neighborhood: ")
@@ -173,10 +181,17 @@ while True:
         for i in lt.iterator(path[0]):
             print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
 
+        print("\n")
+
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")
 
-        controller.requirement7(analyzer, origin)
+        cycles = controller.requirement7(analyzer, origin)
+
+        for i in lt.iterator(cycles):
+            print(i["vertexA"] + " -> " + i["vertexB"])
+
+        print("\n")
 
     else:
         sys.exit(0)
