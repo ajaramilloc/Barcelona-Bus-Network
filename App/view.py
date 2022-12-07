@@ -7,8 +7,12 @@ assert cf
 
 def printMenu():
     print("Bienvenido")
-    print("0- Cargar información en el catálogo")
-    print("1- ")
+    print("0- Load information")
+    print("1- Buscar un camino posible entre dos estaciones")
+    print("2- Buscar el camino con menos paradas entre dos estaciones")
+    print("3- Reconocer los componentes conectados de la Red de rutas de bus")
+    print("6- Buscar el camino con mínima distancia entre una estación de origen y un vecindario de destino")
+    print("7- Encontrar un posible camino circular desde una estación de origen")
 
 analyzer = None
 
@@ -31,14 +35,45 @@ while True:
     if int(inputs[0]) == 0:
         analyzer = newController()
         print("Loading the information from the archives ....")
-        share_stops, exclusive_stops = loadData()
-        print(share_stops)
-        print(exclusive_stops)
-        print(lt.size(gr.vertices(analyzer["connections_digraph"])))
-        print(lt.size(gr.edges(analyzer["connections_digraph"])))
+        area = loadData()
+        digraph = analyzer["connections_digraph"]
+        graph = analyzer["connections_graph"]
+
+        print("\n===================================")
+        print("# Latitude: " + "min latitude: " + area[0][1] + " | " + "max latitude: " + area[0][0])
+        print("# Longitude: " + "min longitude: " + area[0][3] + " | " + "max longitude: " + area[0][2])
+        print("===================================\n")
+
+        print("===================================")
+        print("# Exclusive Stops: " + str(area[1]))
+        print("# Share Stops: " + str(area[2]))
+        print("===================================\n")
+
+        print("===================================")
+        print("# Vertices: " + str(lt.size(gr.vertices(digraph))))
+        print("# Edges: " + str(lt.size(gr.edges(digraph))))
+        print("===================================\n")
+        
+        for i in lt.iterator(area[0][4]):
+            print("ID: " + i["ID"] + " | Code: " + i["Code"] + " | Bus Stop: " + i["Bus_Stop"] + " | Longitude: " + i["Longitude"] + " | Latitude: " + i["Latitude"] + " | Indegree: " + str(i["indegree"]) + " | Outdegree: " + str(i["outdegree"]))
+
+        for i in lt.iterator(area[0][5]):
+            print("ID: " + i["ID"] + " | Code: " + i["Code"] + " | Bus Stop: " + i["Bus_Stop"] + " | Longitude: " + i["Longitude"] + " | Latitude: " + i["Latitude"] + " | Indegree: " + str(i["indegree"]) + " | Outdegree: " + str(i["outdegree"]))
+
         print("\n")
-        print(lt.size(gr.vertices(analyzer["connections_graph"])))
-        print(lt.size(gr.edges(analyzer["connections_graph"])))
+        
+        print("\n===================================")
+        print("# Vertices: " + str(lt.size(gr.vertices(graph))))
+        print("# Edges: " + str(graph["edges"]))
+        print("===================================\n")
+
+        for i in lt.iterator(area[0][6]):
+            print("ID: " + i["ID"] + " | Code: " + i["Code"] + " | Bus Stop: " + i["Bus_Stop"] + " | Longitude: " + i["Longitude"] + " | Latitude: " + i["Latitude"] + " | Degree: " + str(i["degree"]))
+
+        for i in lt.iterator(area[0][7]):
+            print("ID: " + i["ID"] + " | Code: " + i["Code"] + " | Bus Stop: " + i["Bus_Stop"] + " | Longitude: " + i["Longitude"] + " | Latitude: " + i["Latitude"] + " | Degree: " + str(i["degree"]))
+
+        print("\n")
 
     elif int(inputs[0]) == 1:
         origin = input("Enter the origin station: ")
@@ -137,11 +172,6 @@ while True:
 
         for i in lt.iterator(path[0]):
             print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
-
-    elif int(inputs[0]) == 5:
-        origin = input("Enter the origin station: ")
-
-        controller.requirement5(analyzer, origin)
 
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")

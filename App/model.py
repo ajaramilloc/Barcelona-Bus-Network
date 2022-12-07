@@ -33,6 +33,8 @@ def newAnalyzer() -> dict:
     analyzer["connections_digraph"] = gr.newGraph("ADJ_LIST", True, size=4649)
     analyzer["stops_info"] = mp.newMap(4649, maptype="PROBING", loadfactor=0.5)
     analyzer["neighborhoods"] = mp.newMap(100, maptype="PROBING", loadfactor=0.5)
+    analyzer["longitude"] = lt.newList("ARRAY_LIST")
+    analyzer["latitude"] = lt.newList("ARRAY_LIST")
 
     return analyzer
 
@@ -47,6 +49,12 @@ def addStop(analyzer, stop):
 
     if stop["Transbordo"] == "S":
         connection_station = "T" + "-" + stop["Code"]
+
+        connection_info = stop
+        connection_info["Transport"] = "Transfer Bus"
+
+        if not mp.contains(analyzer["stops_info"], connection_station):
+            mp.put(analyzer["stops_info"], connection_station, connection_info)
 
         if gr.containsVertex(digraph, connection_station):
             gr.insertVertex(digraph, format_station)
@@ -71,6 +79,61 @@ def addStop(analyzer, stop):
         addTransfer(analyzer, stop, format_station)
 
     addNeighborhood(analyzer, stop, format_station)
+    lt.addLast(analyzer["latitude"], stop["Latitude"])
+    lt.addLast(analyzer["longitude"], stop["Longitude"])
+
+def area(analyzer):
+    digraph = analyzer["connections_digraph"]
+    first_5 = lt.subList(gr.vertices(digraph), 1, 5)
+    last_5 = lt.subList(gr.vertices(digraph), lt.size(gr.vertices(digraph)) - 4, 5)
+
+    first_5_list = lt.newList("ARRAY_LIST")
+    last_5_list = lt.newList("ARRAY_LIST")
+        
+    for i in lt.iterator(first_5):
+        station = me.getValue(mp.get(analyzer["stops_info"], i))
+        station["ID"] = i
+        station["indegree"] = gr.indegree(digraph, i)
+        station["outdegree"] = gr.outdegree(digraph, i)
+        lt.addLast(first_5_list, station)
+
+    for j in lt.iterator(last_5):
+        station = me.getValue(mp.get(analyzer["stops_info"], j))
+        station["ID"] = j
+        station["indegree"] = gr.indegree(digraph, j)
+        station["outdegree"] = gr.outdegree(digraph, j)
+        lt.addLast(last_5_list, station)
+
+    graph = analyzer["connections_graph"]
+    graph_5 = lt.subList(gr.vertices(graph), 1, 5)
+    graph_last_5 = lt.subList(gr.vertices(graph), lt.size(gr.vertices(graph)) - 4, 5)
+
+    graph_5_list = lt.newList("ARRAY_LIST")
+    graph_last_5_list = lt.newList("ARRAY_LIST")
+        
+    for i in lt.iterator(graph_5):
+        station = me.getValue(mp.get(analyzer["stops_info"], i))
+        station["ID"] = i
+        station["degree"] = gr.degree(graph, i)
+        lt.addLast(graph_5_list, station)
+
+    for j in lt.iterator(graph_last_5):
+        station = me.getValue(mp.get(analyzer["stops_info"], j))
+        station["ID"] = j
+        station["degree"] = gr.degree(graph, j)
+        lt.addLast(graph_last_5_list, station)
+
+    latitudes = analyzer["latitude"]
+    sorted_latitudes = sortList(latitudes, cmp_elements)
+    max_latitude = lt.getElement(sorted_latitudes, 1)
+    min_latitude = lt.getElement(sorted_latitudes, lt.size(sorted_latitudes) - 1)
+
+    longitudes = analyzer["longitude"]
+    sorted_longitudes = sortList(longitudes, cmp_elements)
+    max_longitude = lt.getElement(sorted_longitudes, 1)
+    min_longitude = lt.getElement(sorted_longitudes, lt.size(sorted_longitudes) - 1)
+
+    return max_latitude, min_latitude, max_longitude, min_longitude, first_5_list, last_5_list, graph_5_list, graph_last_5_list
 
 def formatStation(station_code, station_stop):
     format_stop = station_stop.split("-")[1]
@@ -315,6 +378,15 @@ def cmp_function_components(element1: dict, element2: dict) -> None:
     Compare function for the connected components
     """
     if element1["size"] > element2["size"]:
+        return True
+    else:
+        return False
+
+def cmp_elements(element1: dict, element2: dict) -> None:
+    """
+    Compare function for the connected components
+    """
+    if element1 > element2:
         return True
     else:
         return False

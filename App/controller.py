@@ -38,8 +38,9 @@ def loadData(analyzer: dict) -> tuple:
         model.addEdge(analyzer, edge)
 
     model.kosaraju(analyzer)
+    area = model.area(analyzer)
 
-    return share_stops, exclusive_stops
+    return area, exclusive_stops, share_stops
 
 def requirement1(analyzer: dict, origin: str, destiny: str):
     return model.requirement1(analyzer, origin, destiny)
