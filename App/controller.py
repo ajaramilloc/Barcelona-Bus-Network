@@ -18,8 +18,8 @@ def loadData(analyzer: dict) -> tuple:
     """
     Load all the information from the archives, transer to the model
     """
-    stops_file = cf.data_dir + 'Barcelona/bus_stops_bcn-utf8-small.csv'
-    edges_file = cf.data_dir + 'Barcelona/bus_edges_bcn-utf8-small.csv'
+    stops_file = cf.data_dir + 'Barcelona/bus_stops_bcn-utf8-large.csv'
+    edges_file = cf.data_dir + 'Barcelona/bus_edges_bcn-utf8-large.csv'
     stop_file = csv.DictReader(open(stops_file, encoding='utf-8'))
     edge_file = csv.DictReader(open(edges_file, encoding='utf-8'))
 

@@ -14,6 +14,10 @@ from DISClib.Algorithms.Graphs import cycles
 from DISClib.Algorithms.Graphs import prim
 from DISClib.Algorithms.Graphs import dfo
 assert cf
+import sys
+
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
 
 """
 NEW ANALYZER
@@ -92,7 +96,6 @@ def addEdge(analyzer, edge):
     gr.addEdge(digraph, origin_format, destiny_format, distance)
 
     gr.addEdge(graph, origin_format, destiny_format, distance)
-    gr.addEdge(graph, destiny_format, origin_format, distance)
 
 def addTransfer(analyzer, stop, format_station):
     transfer = "T" + "-" + stop["Code"]
@@ -101,7 +104,7 @@ def addTransfer(analyzer, stop, format_station):
     gr.addEdge(analyzer["connections_digraph"], transfer, format_station, 0.0)
 
     gr.addEdge(analyzer["connections_graph"], format_station, transfer, 0.0)
-    gr.addEdge(analyzer["connections_graph"], transfer, format_station, 0.0)
+
 
 def kosaraju(analyzer: dict) -> None:
     """
@@ -149,17 +152,87 @@ REQUIREMENTS
 
 def requirement1(analyzer: dict, origin: str, destiny: str) -> lt:
     paths = dfs.DepthFirstSearch(analyzer["connections_digraph"], origin)
+    path_list = lt.newList("ARRAY_LIST")
+    transfers = 0
 
     if dfs.hasPathTo(paths, destiny):
         path = dfs.pathTo(paths, destiny)
-        print(path)
+    else:
+        path = None
+
+    if path == None:
+        return 0
+    else:
+        while not stack.isEmpty(path):
+            transfer = stack.pop(path)
+            lt.addLast(path_list, transfer)
+
+        dist_to = 0
+        path_info = lt.newList("ARRAY_LIST")
+
+        i = 1
+
+        while i < lt.size(path_list):
+            if i + 1 <= lt.size(path_list):
+                edge = gr.getEdge(analyzer["connections_digraph"], lt.getElement(path_list, i), lt.getElement(path_list, i + 1))
+                lt.addLast(path_info, edge)
+                dist_to += edge["weight"]
+
+                route1 = lt.getElement(path_list, i).split("-")[1]
+                bus1 = lt.getElement(path_list, i).split("-")[0]
+                route2 = lt.getElement(path_list, i+1).split("-")[1]
+                bus2 = lt.getElement(path_list, i+1).split("-")[0]
+
+                if bus1 != "T":
+                    if bus2 != "T":
+                        if route1 != route2:
+                            transfers += 1
+            
+            i += 1
+                
+        return path_info, transfers, dist_to
+
 
 def requirement2(analyzer: dict, origin: str, destiny: str) -> lt:
     paths = bfs.BreadhtFisrtSearch(analyzer["connections_digraph"], origin)
+    path_list = lt.newList("ARRAY_LIST")
+    transfers = 0
 
     if bfs.hasPathTo(paths, destiny):
         path = bfs.pathTo(paths, destiny)
-        print(path)
+    else:
+        path = None
+
+    if path == None:
+        return 0
+    else:
+        while not stack.isEmpty(path):
+            transfer = stack.pop(path)
+            lt.addLast(path_list, transfer)
+
+        dist_to = 0
+        path_info = lt.newList("ARRAY_LIST")
+
+        i = 1
+
+        while i < lt.size(path_list):
+            if i + 1 <= lt.size(path_list):
+                edge = gr.getEdge(analyzer["connections_digraph"], lt.getElement(path_list, i), lt.getElement(path_list, i + 1))
+                lt.addLast(path_info, edge)
+                dist_to += edge["weight"]
+
+                route1 = lt.getElement(path_list, i).split("-")[1]
+                bus1 = lt.getElement(path_list, i).split("-")[0]
+                route2 = lt.getElement(path_list, i+1).split("-")[1]
+                bus2 = lt.getElement(path_list, i+1).split("-")[0]
+
+                if bus1 != "T" or bus2 != "T":
+                    if route1 != route2:
+                        transfers += 1
+            
+            i += 1
+                
+        return path_info, transfers, dist_to
 
 def requirement3(analyzer: dict) -> lt:
     components: map = analyzer["components"]
@@ -172,25 +245,32 @@ def requirement3(analyzer: dict) -> lt:
         lt.addLast(format_components, component_dict)
 
     sorted_list: lt = sortList(format_components, cmp_function_components)
+    top_5 = lt.subList(sorted_list, 1, 5)
 
-    for i in lt.iterator(sorted_list):
-        print(i["size"])
+    return top_5, lt.size(sorted_list)
 
 def requirement5(analyzer, origin):
     graph = analyzer["connections_graph"]
     mst = prim.PrimMST(graph, origin)
     prim.weightMST(graph, mst)
-    print(mst["mst"])
-    """
-    for transfer in lt.iterator(mst["mst"]):
-        print(transfer)
-    """
+    
+
+    x = prim.edgesMST(analyzer["connections_graph"], mst)
+
+    
+    
+    i = 1
+
+    while i <=5:
+        print(lt.getElement(mst["mst"], i))
+        i += 1
 
 def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     graph: gr = analyzer["connections_digraph"]
     neighborhood_stops = me.getValue(mp.get(analyzer["neighborhoods"], neighborhood))
     dijikstra: djk = djk.Dijkstra(graph, origin)
     stops = lt.newList("ARRAY_LIST")
+    path_list = lt.newList("ARRAY_LIST")
 
     for stop in lt.iterator(neighborhood_stops):
         distance: float = djk.distTo(dijikstra, stop)
@@ -200,20 +280,31 @@ def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     sorted_list: lt = sortList(stops, cmp_function_components)
     
     path = djk.pathTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
-    print(path)
+    dist_to = djk.distTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
+
+    while not stack.isEmpty(path):
+            transfer = stack.pop(path)
+            lt.addLast(path_list, transfer)
+
+    for i in lt.iterator(path_list):
+        if i["vertexA"].split("-")[0] != "T":
+            vertexA = me.getValue(mp.get(analyzer["stops_info"], i["vertexA"]))
+            i["vertexA"] = i["vertexA"] + " | " + vertexA["Neighborhood_Name"]
+        else:
+            i["vertexA"] = i["vertexA"] + " | " + "Transfer"
+
+        if i["vertexB"].split("-")[0] != "T":
+            vertexB = me.getValue(mp.get(analyzer["stops_info"], i["vertexB"]))
+            i["vertexB"] = i["vertexB"] + " | " +  vertexB["Neighborhood_Name"]
+        else:
+            i["vertexB"] = i["vertexB"] + " | " + "Transfer"
+
+    return path_list, dist_to, lt.size(path_list) + 1
 
 def requirement7(analyzer: dict, origin: str) -> lt:
-    """
     graph_cycles = cycles.DirectedCycle(analyzer["connections_digraph"])
     cycles_list = cycles.dfs(analyzer["connections_digraph"], graph_cycles, origin)["cycle"]
     print(cycles_list)
-    """
-
-    search = dfo.DepthFirstOrder(analyzer["connections_digraph"])
-    reverse = search["reversepost"]
-    while not stack.isEmpty(reverse):
-        n = stack.pop(reverse)
-        print(n)
 
 """
 SORTINGS

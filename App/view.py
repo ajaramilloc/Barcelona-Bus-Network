@@ -44,22 +44,99 @@ while True:
         origin = input("Enter the origin station: ")
         destiny = input("Enter the destiny station: ")
 
-        controller.requirement1(analyzer, origin, destiny)
+        path = controller.requirement1(analyzer, origin, destiny)
+
+        if path == 0:
+            print(f'No hay camino desde la estación {origin} hacia la estación {destiny}')
+        else:
+            print("\n===================================")
+            print(f"Total distance: {path[2]}")
+            print("===================================\n")
+
+            print("===================================")
+            print(f"Total transfers: {path[1]}")
+            print("===================================\n")
+
+            print("===================================")
+            print(f"Path:")
+            print("===================================\n")
+
+            for i in lt.iterator(path[0]):
+                print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
 
     elif int(inputs[0]) == 2:
         origin = input("Enter the origin station: ")
         destiny = input("Enter the destiny station: ")
 
-        controller.requirement2(analyzer, origin, destiny)
+        path = controller.requirement2(analyzer, origin, destiny)
+
+        if path == 0:
+            print(f'No hay camino desde la estación {origin} hacia la estación {destiny}')
+        else:
+
+            print("\n===================================")
+            print(f"Total distance: {path[2]}")
+            print("===================================\n")
+
+            print("===================================")
+            print(f"Total transfers: {path[1]}")
+            print("===================================\n")
+
+            print("===================================")
+            print(f"Path:")
+            print("===================================\n")
+
+            for i in lt.iterator(path[0]):
+                print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
 
     elif int(inputs[0]) == 3:
-        controller.requirement3(analyzer)
+        components = controller.requirement3(analyzer)
+
+        print("\n===================================")
+        print(f"Total components: {components[1]}")
+        print("===================================\n")
+
+        for component in lt.iterator(components[0]):
+            component_size = lt.size(component["component"])
+            first_3 = lt.subList(component["component"], 1, 3)
+            last_3 = lt.subList(component["component"], component_size - 2, 3)
+
+            print("===================================")
+            print(f"Total stations: {component_size}\n")
+            print("First 3 stations: ")
+
+            for station in lt.iterator(first_3):
+                print(station)
+
+            print("\n")
+
+            print("Last 3 stations: ")
+            
+            for station in lt.iterator(last_3):
+                print(station)
+
+            print("===================================\n")
 
     elif int(inputs[0]) == 6:
         origin = input("Enter the origin station: ")
         neighborhood = input("Enter the neighborhood: ")
 
-        controller.requirement6(analyzer, origin, neighborhood)
+        path = controller.requirement6(analyzer, origin, neighborhood)
+
+        print("\n===================================")
+        print(f"Total distance: {path[1]}")
+        print("===================================\n")
+
+        print("===================================")
+        print(f"Total stations: {path[2]}")
+        print("===================================\n")
+
+        print("===================================")
+        print(f"Path:")
+        print("===================================\n")
+
+        for i in lt.iterator(path[0]):
+            print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
 
     elif int(inputs[0]) == 5:
         origin = input("Enter the origin station: ")
