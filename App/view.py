@@ -90,6 +90,10 @@ while True:
             print(f"Total distance: {path[2]}")
             print("===================================\n")
 
+            print("\n===================================")
+            print(f"Total stations: {path[3]}")
+            print("===================================\n")
+
             print("===================================")
             print(f"Total transfers: {path[1]}")
             print("===================================\n")
@@ -115,6 +119,10 @@ while True:
 
             print("\n===================================")
             print(f"Total distance: {path[2]}")
+            print("===================================\n")
+
+            print("\n===================================")
+            print(f"Total stations: {path[3]}")
             print("===================================\n")
 
             print("===================================")
@@ -166,22 +174,34 @@ while True:
 
         path = controller.requirement6(analyzer, origin, neighborhood)
 
-        print("\n===================================")
-        print(f"Total distance: {path[1]}")
-        print("===================================\n")
+        if path != None:
 
-        print("===================================")
-        print(f"Total stations: {path[2]}")
-        print("===================================\n")
+            print("\n===================================")
+            print(f"Total distance: {path[1]}")
+            print("===================================\n")
 
-        print("===================================")
-        print(f"Path:")
-        print("===================================\n")
+            print("===================================")
+            print(f"Total stations: {path[2]}")
+            print("===================================\n")
 
-        for i in lt.iterator(path[0]):
-            print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
+            print("===================================")
+            print(f"Total transfers: {path[3]}")
+            print("===================================\n")
 
-        print("\n")
+            print("===================================")
+            print(f"Path:")
+            print("===================================\n")
+
+            for i in lt.iterator(path[0]):
+                print(i["vertexA"] + " -> " + i["vertexB"] + " | distNext: " + str(i["weight"]))
+
+            print("\n")
+
+        else:
+
+            print("\n============================================================")
+            print(f"No hay camino desde {origin} hacia {neighborhood}")
+            print("============================================================\n")
 
     elif int(inputs[0]) == 7:
         origin = input("Enter the origin station: ")

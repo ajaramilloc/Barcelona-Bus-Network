@@ -217,6 +217,7 @@ def requirement1(analyzer: dict, origin: str, destiny: str) -> lt:
     paths = dfs.DepthFirstSearch(analyzer["connections_digraph"], origin)
     path_list = lt.newList("ARRAY_LIST")
     transfers = 0
+    stations = 0
 
     if dfs.hasPathTo(paths, destiny):
         path = dfs.pathTo(paths, destiny)
@@ -252,14 +253,16 @@ def requirement1(analyzer: dict, origin: str, destiny: str) -> lt:
                             transfers += 1
             
             i += 1
+            stations += 1
                 
-        return path_info, transfers, dist_to
+        return path_info, transfers, dist_to, stations + 1
 
 
 def requirement2(analyzer: dict, origin: str, destiny: str) -> lt:
     paths = bfs.BreadhtFisrtSearch(analyzer["connections_digraph"], origin)
     path_list = lt.newList("ARRAY_LIST")
     transfers = 0
+    stations = 0
 
     if bfs.hasPathTo(paths, destiny):
         path = bfs.pathTo(paths, destiny)
@@ -294,8 +297,9 @@ def requirement2(analyzer: dict, origin: str, destiny: str) -> lt:
                         transfers += 1
             
             i += 1
+            stations += 1
                 
-        return path_info, transfers, dist_to
+        return path_info, transfers, dist_to, stations + 1
 
 def requirement3(analyzer: dict) -> lt:
     components: map = analyzer["components"]
@@ -318,6 +322,7 @@ def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
     dijikstra: djk = djk.Dijkstra(graph, origin)
     stops = lt.newList("ARRAY_LIST")
     path_list = lt.newList("ARRAY_LIST")
+    transfer  = 0
 
     for stop in lt.iterator(neighborhood_stops):
         distance: float = djk.distTo(dijikstra, stop)
@@ -325,28 +330,37 @@ def requirement6(analyzer: dict, origin: str, neighborhood: str) -> lt:
         lt.addLast(stops, stop_info)
 
     sorted_list: lt = sortList(stops, cmp_function_components)
+
+    if djk.hasPathTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)):
     
-    path = djk.pathTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
-    dist_to = djk.distTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
+        path = djk.pathTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
+        dist_to = djk.distTo(dijikstra, lt.getElement(sorted_list, lt.size(sorted_list) - 1)["component"])
 
-    while not stack.isEmpty(path):
-            transfer = stack.pop(path)
-            lt.addLast(path_list, transfer)
+        while not stack.isEmpty(path):
+                transfer = stack.pop(path)
+                lt.addLast(path_list, transfer)
 
-    for i in lt.iterator(path_list):
-        if i["vertexA"].split("-")[0] != "T":
-            vertexA = me.getValue(mp.get(analyzer["stops_info"], i["vertexA"]))
-            i["vertexA"] = i["vertexA"] + " | " + vertexA["Neighborhood_Name"]
-        else:
-            i["vertexA"] = i["vertexA"] + " | " + "Transfer"
+        for i in lt.iterator(path_list):
+            if i["vertexA"].split("-")[0] != "T" or i["vertexB"].split("-")[0] != "T":
+                transfer += 1
 
-        if i["vertexB"].split("-")[0] != "T":
-            vertexB = me.getValue(mp.get(analyzer["stops_info"], i["vertexB"]))
-            i["vertexB"] = i["vertexB"] + " | " +  vertexB["Neighborhood_Name"]
-        else:
-            i["vertexB"] = i["vertexB"] + " | " + "Transfer"
+            if i["vertexA"].split("-")[0] != "T":
+                vertexA = me.getValue(mp.get(analyzer["stops_info"], i["vertexA"]))
+                i["vertexA"] = i["vertexA"] + " | " + vertexA["Neighborhood_Name"]
+            else:
+                i["vertexA"] = i["vertexA"] + " | " + "Transfer"
 
-    return path_list, dist_to, lt.size(path_list) + 1
+            if i["vertexB"].split("-")[0] != "T":
+                vertexB = me.getValue(mp.get(analyzer["stops_info"], i["vertexB"]))
+                i["vertexB"] = i["vertexB"] + " | " +  vertexB["Neighborhood_Name"]
+            else:
+                i["vertexB"] = i["vertexB"] + " | " + "Transfer"
+
+        return path_list, dist_to, lt.size(path_list) + 1, transfer
+
+    else:
+
+        return None
 
 def requirement7(analyzer: dict, origin: str) -> lt:
     graph_cycles = cycles.DirectedCycle(analyzer["connections_digraph"])
